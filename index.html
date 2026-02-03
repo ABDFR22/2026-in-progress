@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>2026 — Year in Progress</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;700&family=Outfit:wght@800;900&display=swap" rel="stylesheet"/>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-deep: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-card-border: rgba(255,255,255,0.06);
+            --accent: #e8d5a3;
+            --accent-glow: rgba(232,213,163,0.25);
+            --accent-dim: rgba(232,213,163,0.55);
+            --text-primary: #f0ece4;
+            --text-secondary: rgba(240,236,228,0.5);
+            --text-muted: rgba(240,236,228,0.3);
+            --ring-bg: rgba(255,255,255,0.07);
+            --ring-stroke: url(#accentGrad);
+        }
+
+        html, body {
+            min-height: 100%;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 18px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* --- Ambient background blobs --- */
+        .ambient {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.18;
+        }
+        .blob-1 {
+            width: 500px; height: 500px;
+            background: #c9a84c;
+            top: -120px; left: -100px;
+        }
+        .blob-2 {
+            width: 380px; height: 380px;
+            background: #7a6a3a;
+            bottom: -80px; right: -60px;
+        }
+        .blob-3 {
+            width: 260px; height: 260px;
+            background: #a08840;
+            top: 50%; left: 60%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* --- Main wrapper --- */
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 28px;
+        }
+
+        /* --- Header --- */
+        .header {
+            text-align: center;
+        }
+        .header .year-badge {
+            display: inline-block;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--accent);
+            border: 1px solid var(--accent-glow);
+            border-radius: 30px;
+            padding: 6px 18px;
+            margin-bottom: 14px;
+            background: rgba(232,213,163,0.06);
+        }
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: clamp(32px, 8vw, 52px);
+            line-height: 1.1;
+            color: var(--text-primary);
+            letter-spacing: -1.5px;
+        }
+        .header h1 span {
+            color: var(--accent);
+        }
+        .header p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+        }
+
+        /* --- Progress Ring Card --- */
+        .ring-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 28px;
+            padding: 36px 28px 32px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(12px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.03) inset,
+                0 24px 60px rgba(0,0,0,0.35);
+        }
+
+        .ring-wrap {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+        .ring-wrap svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .ring-bg-circle {
+            fill: none;
+            stroke: var(--ring-bg);
+            stroke-width: 14;
+        }
+        .ring-progress-circle {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.6s cubic-bezier(.4,0,.2,1);
+            /* glow */
+            filter: drop-shadow(0 0 8px var(--accent-glow));
+        }
+
+        .ring-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .ring-percent {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: clamp(36px, 10vw, 48px);
+            color: var(--text-primary);
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+        .ring-percent-sign {
+            font-size: 0.5em;
+            color: var(--accent);
+            vertical-align: super;
+        }
+        .ring-label {
+            margin-top: 4px;
+            font-size: 11px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* progress bar strip */
+        .strip-wrap {
+            width: 100%;
+            margin-top: 6px;
+        }
+        .strip-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .strip-label-row span:last-child {
+            color: var(--accent-dim);
+            font-weight: 500;
+        }
+        .strip-bg {
+            width: 100%;
+            height: 6px;
+            background: var(--ring-bg);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+        .strip-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #c9a84c);
+            border-radius: 100px;
+            transition: width 0.6s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* --- Countdown Card --- */
+        .countdown-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 28px;
+            padding: 28px 24px;
+            width: 100%;
+            backdrop-filter: blur(12px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.03) inset,
+                0 24px 60px rgba(0,0,0,0.35);
+        }
+        .countdown-title {
+            text-align: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+        .count-block {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .count-wrap {
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 18px 6px 16px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        .count-wrap:hover {
+            background: rgba(232,213,163,0.07);
+        }
+        .count-number {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: clamp(24px, 6.5vw, 34px);
+            color: var(--text-primary);
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+        .count-text {
+            margin-top: 8px;
+            font-size: 9.5px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* --- Stats row --- */
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 20px;
+            padding: 20px 18px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        }
+        .stat-card .stat-label {
+            font-size: 10.5px;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .stat-card .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: clamp(18px, 5vw, 24px);
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+        .stat-card .stat-value span {
+            font-size: 0.6em;
+            color: var(--accent-dim);
+            font-weight: 500;
+            margin-left: 3px;
+        }
+
+        /* --- Footer --- */
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 0.4px;
+        }
+        .footer .heart {
+            color: #c9605a;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 400px) {
+            body { padding: 32px 14px; }
+            .ring-wrap { width: 170px; height: 170px; }
+            .ring-card { padding: 28px 18px 26px; border-radius: 22px; }
+            .countdown-card { padding: 22px 16px; border-radius: 22px; }
+            .count-wrap { padding: 14px 4px 12px; border-radius: 14px; }
+            .stats-row { gap: 10px; }
+            .stat-card { padding: 16px 14px; border-radius: 16px; }
+        }
+
+        @media (max-width: 340px) {
+            .count-block { gap: 6px; }
+            .count-wrap { border-radius: 12px; padding: 12px 2px 10px; }
+        }
+
+        /* --- subtle pulse on the ring glow --- */
+        @keyframes glowPulse {
+            0%, 100% { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+            50%      { filter: drop-shadow(0 0 14px rgba(232,213,163,0.4)); }
+        }
+        .ring-progress-circle {
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ambient blobs -->
+<div class="ambient">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+</div>
+
+<div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="year-badge">✦ Year in Progress</div>
+        <h1>How far into <span>2026</span><br>are we?</h1>
+        <p>Live tracker updating every second</p>
+    </div>
+
+    <!-- Progress Ring -->
+    <div class="ring-card">
+        <div class="ring-wrap">
+            <svg viewBox="0 0 200 200">
+                <defs>
+                    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#e8d5a3"/>
+                        <stop offset="100%" stop-color="#c9a84c"/>
+                    </linearGradient>
+                </defs>
+                <circle class="ring-bg-circle" cx="100" cy="100" r="86"></circle>
+                <circle class="ring-progress-circle" id="ringCircle" cx="100" cy="100" r="86"
+                        stroke-dasharray="540.35"
+                        stroke-dashoffset="540.35"></circle>
+            </svg>
+            <div class="ring-center">
+                <div class="ring-percent"><span id="percentValue">0</span><span class="ring-percent-sign">%</span></div>
+                <div class="ring-label">Complete</div>
+            </div>
+        </div>
+
+        <!-- Linear strip -->
+        <div class="strip-wrap">
+            <div class="strip-label-row">
+                <span>Jan 1</span>
+                <span id="stripPercent">0% done</span>
+            </div>
+            <div class="strip-bg">
+                <div class="strip-fill" id="stripFill" style="width:0%"></div>
+            </div>
+            <div class="strip-label-row" style="margin-top:8px; margin-bottom:0;">
+                <span>Today</span>
+                <span>Dec 31</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remaining Countdown -->
+    <div class="countdown-card">
+        <div class="countdown-title">⏳ Time remaining in 2026</div>
+        <div class="count-block">
+            <div class="count-wrap">
+                <div class="count-number" id="days">000</div>
+                <div class="count-text">Days</div>
+            </div>
+            <div class="count-wrap">
+                <div class="count-number" id="hours">00</div>
+                <div class="count-text">Hours</div>
+            </div>
+            <div class="count-wrap">
+                <div class="count-number" id="minutes">00</div>
+                <div class="count-text">Minutes</div>
+            </div>
+            <div class="count-wrap">
+                <div class="count-number" id="seconds">00</div>
+                <div class="count-text">Seconds</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extra stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Days Elapsed</div>
+            <div class="stat-value" id="daysElapsed">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Days Left</div>
+            <div class="stat-value" id="daysLeft">— <span>days</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Current Week</div>
+            <div class="stat-value" id="currentWeek">— <span>of 52</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Current Month</div>
+            <div class="stat-value" id="currentMonth">—</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">Made with <span class="heart">❤️</span> · 2026</div>
+</div>
+
+<script>
+(function () {
+    // ── constants ──────────────────────────────────
+    const START  = new Date("January 1, 2026 00:00:00").getTime();
+    const END    = new Date("January 1, 2027 00:00:00").getTime();   // end = start of next year
+    const TOTAL  = END - START;                                       // ms in 2026
+
+    const CIRCUMFERENCE = 2 * Math.PI * 86;   // r = 86  →  ~540.35
+
+    const months = [
+        "January","February","March","April","May","June",
+        "July","August","September","October","November","December"
+    ];
+
+    // ── DOM refs ───────────────────────────────────
+    const ringCircle   = document.getElementById('ringCircle');
+    const percentEl    = document.getElementById('percentValue');
+    const stripFill    = document.getElementById('stripFill');
+    const stripPercent = document.getElementById('stripPercent');
+    const daysEl       = document.getElementById('days');
+    const hoursEl      = document.getElementById('hours');
+    const minsEl       = document.getElementById('minutes');
+    const secsEl       = document.getElementById('seconds');
+    const daysElapsed  = document.getElementById('daysElapsed');
+    const daysLeftEl   = document.getElementById('daysLeft');
+    const weekEl       = document.getElementById('currentWeek');
+    const monthEl      = document.getElementById('currentMonth');
+
+    // initialise ring
+    ringCircle.style.strokeDasharray = CIRCUMFERENCE;
+    ringCircle.style.strokeDashoffset = CIRCUMFERENCE;
+
+    function pad(n, len) {
+        return String(n).padStart(len, '0');
+    }
+
+    function tick() {
+        const now    = new Date().getTime();
+        const elapsed = now - START;
+        const remaining = END - now;
+
+        // ── percentage ─────────────────────────────
+        let pct = (elapsed / TOTAL) * 100;
+        if (pct < 0) pct = 0;
+        if (pct > 100) pct = 100;
+
+        const pctRounded = Math.floor(pct * 10) / 10;   // 1 decimal
+        percentEl.textContent = pctRounded.toFixed(1);
+
+        // ring
+        const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+        ringCircle.style.strokeDashoffset = offset;
+
+        // strip
+        stripFill.style.width = pct + '%';
+        stripPercent.textContent = pctRounded.toFixed(1) + '% done';
+
+        // ── remaining countdown ────────────────────
+        if (remaining > 0) {
+            const d = Math.floor(remaining / (1000 * 60 * 60 * 24));
+            const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((remaining % (1000 * 60)) / 1000);
+            daysEl.textContent  = pad(d, 3);
+            hoursEl.textContent = pad(h, 2);
+            minsEl.textContent  = pad(m, 2);
+            secsEl.textContent  = pad(s, 2);
+        } else {
+            daysEl.textContent  = '000';
+            hoursEl.textContent = '00';
+            minsEl.textContent  = '00';
+            secsEl.textContent  = '00';
+        }
+
+        // ── extra stats ────────────────────────────
+        const now_date = new Date();
+
+        // days elapsed (full days completed)
+        const elapsedDays = Math.floor(elapsed / (1000 * 60 * 60 * 24));
+        daysElapsed.innerHTML = elapsedDays + '<span> days</span>';
+
+        // days left
+        const leftDays = Math.ceil(remaining / (1000 * 60 * 60 * 24));
+        daysLeftEl.innerHTML = leftDays + ' <span>days</span>';
+
+        // ISO week number
+        const jan1 = new Date(2026, 0, 1);
+        const dayOfYear = Math.floor((now_date - jan1) / (1000 * 60 * 60 * 24)) + 1;
+        const weekNum = Math.ceil(dayOfYear / 7);
+        weekEl.innerHTML = weekNum + ' <span>of 52</span>';
+
+        // month
+        monthEl.textContent = months[now_date.getMonth()];
+    }
+
+    // run immediately then every second
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
